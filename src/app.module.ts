@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { HogeModule } from './hoge/hoge.module';
+import { Module } from "@nestjs/common";
+import { HogeModule } from "./hoge/hoge.module";
 
-@Module({imports: [HogeModule]})
+@Module({ imports: [HogeModule] })
 export class AppModule {}

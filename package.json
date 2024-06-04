@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "keywords": [],
   "author": "",
@@ -28,6 +29,7 @@
     "@nestjs/core": "^10.3.9",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^10.3.9",
-    "aws-amplify": "^6.3.2"
+    "aws-amplify": "^6.3.2",
+    "prettier": "^3.3.0"
   }
 }

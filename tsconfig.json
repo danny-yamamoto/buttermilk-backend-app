@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "rootDir": "./",
+    "outDir": "./dist",
+    "baseUrl": ".",  // 追加
+    "paths": {       // 追加
+      "@nestjs/*": ["node_modules/@nestjs/*"]
+    },
+    "experimentalDecorators": true,  // デコレータを有効にする
+    "emitDecoratorMetadata": true    // デコレータのメタデータを出力
+  },
+  "include": ["src/**/*", "libs/**/*"],  // 追加
+  "exclude": ["node_modules", "dist"]
+}

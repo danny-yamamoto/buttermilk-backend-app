@@ -5,3 +5,7 @@ amplify_outputs*
 amplifyconfiguration*
 
 dist
+
+# Dev
+README-PERSONAL.md
+*.wip

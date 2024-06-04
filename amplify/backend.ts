@@ -9,9 +9,10 @@ const backend = defineBackend({
   data,
 });
 
-const customResourceStack = backend.createStack("MyCustomResources");
+const customResourceStack = backend.createStack("KBPCustomResources");
 
-const vpc = new ec2.Vpc(customResourceStack, "ampxVPC", {
+const kbpCustomVpc = new ec2.Vpc(customResourceStack, "kbpAmpxVPC", {
+  //  ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
   maxAzs: 2,
   subnetConfiguration: [
     {
@@ -21,20 +22,20 @@ const vpc = new ec2.Vpc(customResourceStack, "ampxVPC", {
     },
   ],
 });
-const securityGroup = new ec2.SecurityGroup(
+const kbpSecurityGroup = new ec2.SecurityGroup(
   customResourceStack,
-  "RDSSecurityGroup",
+  "kbpRDSSecurityGroup",
   {
-    vpc,
+    vpc: kbpCustomVpc,
     allowAllOutbound: true,
   },
 );
-securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3306));
-securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
+kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3306));
+kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
 
-const rdsInstance = new rds.DatabaseInstance(
+const kbpRdsInstance = new rds.DatabaseInstance(
   customResourceStack,
-  "RDSInstance",
+  "kbpRDSInstance",
   {
     engine: rds.DatabaseInstanceEngine.mysql({
       version: rds.MysqlEngineVersion.VER_8_0_36,
@@ -44,18 +45,18 @@ const rdsInstance = new rds.DatabaseInstance(
       ec2.InstanceClass.BURSTABLE3,
       ec2.InstanceSize.SMALL,
     ),
-    vpc,
+    vpc: kbpCustomVpc,
     vpcSubnets: {
       subnetType: ec2.SubnetType.PUBLIC,
     },
-    securityGroups: [securityGroup],
-    databaseName: "ampxdb",
+    securityGroups: [kbpSecurityGroup],
+    databaseName: "kbpAmpxDb",
     publiclyAccessible: true,
   },
 );
 
 backend.addOutput({
   custom: {
-    value: rdsInstance.dbInstanceEndpointAddress,
+    value: kbpRdsInstance.dbInstanceEndpointAddress,
   },
 });

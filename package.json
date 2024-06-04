@@ -12,14 +12,19 @@
   "devDependencies": {
     "@aws-amplify/backend": "^1.0.2",
     "@aws-amplify/backend-cli": "^1.0.3",
+    "@nestjs/testing": "^10.3.9",
+    "@types/jest": "^29.5.12",
     "aws-cdk": "^2.142.0",
     "aws-cdk-lib": "^2.142.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.21.3",
+    "ts-loader": "^9.5.1",
     "tsx": "^4.10.3",
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@nestjs/common": "^10.3.9",
+    "@nestjs/core": "^10.3.9",
     "aws-amplify": "^6.3.2"
   }
 }

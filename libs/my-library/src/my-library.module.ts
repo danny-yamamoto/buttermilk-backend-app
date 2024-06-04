@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { MyLibraryService } from './my-library.service';
+import { Module } from "@nestjs/common";
+import { MyLibraryService } from "./my-library.service";
 
 @Module({
   providers: [MyLibraryService],

@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { HogeService } from './hoge.service';
-import { HogeController } from './hoge.controller';
+import { Module } from "@nestjs/common";
+import { HogeService } from "./hoge.service";
+import { HogeController } from "./hoge.controller";
 
 @Module({
   controllers: [HogeController],

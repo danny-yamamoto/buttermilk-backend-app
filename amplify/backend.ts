@@ -1,23 +1,16 @@
-import { defineBackend } from '@aws-amplify/backend';
-import { auth } from './auth/resource';
-import { data } from './data/resource';
-import { CustomDatabase } from './custom/customdatabase/resource';
+import { defineBackend } from "@aws-amplify/backend";
+import { data } from "./data/resource";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import { Construct } from "constructs";
 
-/**
- * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
- */
-const backend = defineBackend({
-  auth,
-  data,
-});
+defineBackend({ data });
 
-const customDatabase = new CustomDatabase(
-  backend.createStack('CustomDatabase'),
-  'CustomDatabase',
-);
-
-backend.addOutput({
-  custom: {
-    db: customDatabase,
-  },
-});
+export class CustomVpc extends Construct {
+  public readonly vpc: ec2.Vpc;
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+    this.vpc = new ec2.Vpc(this, "CustomVpc", {
+      ipAddresses: ec2.IpAddresses.cidr("10.0.0.0/16"),
+    });
+  }
+}

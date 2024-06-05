@@ -9,3 +9,6 @@ dist
 # Dev
 README-PERSONAL.md
 *.wip
+
+# Prisma
+.env

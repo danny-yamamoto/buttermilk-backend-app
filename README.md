@@ -1,18 +1,22 @@
 ## Description
+
 This repository is a sample using Amplify Gen 2, NestJS and Prisma.
 
 ## Install SQL Client in a local container
+
 ```bash
 sudo apt update
 sudo apt install -y default-mysql-client
 ```
 
 ### Display table list
+
 ```sql
 SHOW TABLES;
 ```
 
 ## Run backend API
+
 ```bash
 # Run app
 npx nest start hoge
@@ -36,6 +40,7 @@ curl -i -X GET localhost:3000/todo/1
 ```
 
 ### Examples
+
 ```bash: logs
 node ➜ /workspaces/buttermilk-backend-app (main) $ curl -i -X POST -H 'Content-Type: application/json' -d '{"content" : "apple"}' localhost:3000/todo
 HTTP/1.1 201 Created
@@ -62,6 +67,7 @@ node ➜ /workspaces/buttermilk-backend-app (main)
 ```
 
 ## Set up Prisma and migration
+
 ```bash
 npm install prisma
 npx prisma init
@@ -69,6 +75,7 @@ npx prisma migrate dev --name init
 ```
 
 ### Examples
+
 ```bash: logs
 node ➜ /workspaces/buttermilk-backend-app (main) $ npx prisma migrate dev --name init
 Environment variables loaded from .env
@@ -92,6 +99,7 @@ node ➜ /workspaces/buttermilk-backend-app (main)
 ```
 
 ## Bootstrap your AWS account
+
 ```bash
 aws configure sso
 # Set AWS environment variables
@@ -104,6 +112,7 @@ npx ampx sandbox --profile <profile-name>
 ```
 
 ### Examples
+
 ```bash: logs
 node ➜ /workspaces/buttermilk-backend-app (main) $ npx ampx sandbox --profile hoge-9999
 
@@ -114,6 +123,7 @@ node ➜ /workspaces/buttermilk-backend-app (main) $ npx ampx sandbox --profile 
 ```
 
 ### Add another terminal to run
+
 ```bash: logs
 node ➜ /workspaces/buttermilk-backend-app (main) $ npx nest start todo
 webpack 5.90.1 compiled successfully in 22426 ms
@@ -131,3 +141,18 @@ webpack 5.90.1 compiled successfully in 22426 ms
 [Nest] 10689  - 06/05/2024, 4:32:12 AM     LOG [RouterExplorer] Mapped {/todo/:id, DELETE} route +0ms
 [Nest] 10689  - 06/05/2024, 4:32:12 AM     LOG [NestApplication] Nest application successfully started +462ms
 ```
+
+## Reference
+
+- EC2 [^4]
+- RDS [^3]
+- ECR [^2]
+- ECS [^1]
+
+[^1]: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs-readme.html
+
+[^2]: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecr-readme.html
+
+[^3]: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_rds-readme.html
+
+[^4]: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ec2-readme.html

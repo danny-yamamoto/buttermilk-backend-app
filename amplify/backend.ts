@@ -4,6 +4,7 @@ import { data } from "./data/resource";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as rds from "aws-cdk-lib/aws-rds";
 import * as ecr from "aws-cdk-lib/aws-ecr";
+import * as ecs from "aws-cdk-lib/aws-ecs";
 
 const backend = defineBackend({
   auth,
@@ -36,14 +37,36 @@ const kbpSecurityGroup = new ec2.SecurityGroup(
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3306));
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
 
-// ECR
-// README at: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecr-readme.html
-const repository = new ecr.Repository(customResourceStack, "kbpRepo", {
-  imageScanOnPush: false,
-  repositoryName: "backend-api-1",
+const cluster = new ecs.Cluster(customResourceStack, "kbpCluster", {
+  vpc: kbpCustomVpc,
 });
-repository.addLifecycleRule({ tagPatternList: ["v*"], maxImageCount: 10 });
 
+cluster.addCapacity('DefaultAutoScalingGroupCapacity', {
+  instanceType: new ec2.InstanceType("t2.xlarge"),
+  desiredCapacity: 1,
+});
+
+const taskDefinition = new ecs.Ec2TaskDefinition(
+  customResourceStack,
+  "kbpTaskDef",
+);
+
+const container = taskDefinition.addContainer("DefaultContainer", {
+  image: ecs.ContainerImage.fromAsset("./"),
+  memoryLimitMiB: 512,
+  cpu: 256,
+});
+
+container.addPortMappings({
+  containerPort: 3000, // NestJSがリッスンするポート
+});
+
+new ecs.Ec2Service(customResourceStack, "kbpService", {
+  cluster,
+  taskDefinition,
+});
+
+/*
 // RDS
 // README at: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecr-readme.html
 const kbpRdsInstance = new rds.DatabaseInstance(
@@ -73,3 +96,4 @@ backend.addOutput({
     rds: kbpRdsInstance.dbInstanceEndpointAddress,
   },
 });
+*/

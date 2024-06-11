@@ -2,9 +2,12 @@ import { defineBackend } from "@aws-amplify/backend";
 import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import * as rds from "aws-cdk-lib/aws-rds";
+//import * as rds from "aws-cdk-lib/aws-rds";
 import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as ecs from "aws-cdk-lib/aws-ecs";
+//import * as codebuild from "aws-cdk-lib/aws-codebuild";
+//import * as iam from "aws-cdk-lib/aws-iam";
+import * as ecs_patterns from "aws-cdk-lib/aws-ecs-patterns";
 
 const backend = defineBackend({
   auth,
@@ -37,34 +40,94 @@ const kbpSecurityGroup = new ec2.SecurityGroup(
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3306));
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
 
-const cluster = new ecs.Cluster(customResourceStack, "kbpCluster", {
+/*
+//533267164653.dkr.ecr.ap-northeast-1.amazonaws.com/hello-repository
+const repository = ecr.Repository.fromRepositoryArn(
+  customResourceStack,
+  "MyExistingRepository",
+  "arn:aws:ecr:ap-northeast-1:533267164653:repository/hello-repository",
+);
+
+const containerImage = ecs.ContainerImage.fromEcrRepository(
+  repository,
+  "latest",
+);
+
+const taskDefinition = new ecs.Ec2TaskDefinition(
+  customResourceStack,
+  "MyTaskDefinition",
+);
+
+const container = taskDefinition.addContainer("DefaultContainer", {
+  image: containerImage,
+  memoryLimitMiB: 512,
+  cpu: 256,
+});
+*/
+
+/*
+const repository = ecr.Repository.fromRepositoryArn(
+  customResourceStack,
+  "MyExistingRepository",
+  "arn:aws:ecr:ap-northeast-1:533267164653:repository/hello-repository",
+);
+
+const containerImage = ecs.ContainerImage.fromEcrRepository(
+  repository,
+  "latest",
+);
+
+const kbpCluster = new ecs.Cluster(customResourceStack, "kbpCluster", {
   vpc: kbpCustomVpc,
 });
 
-cluster.addCapacity('DefaultAutoScalingGroupCapacity', {
+kbpCluster.addCapacity("kbpAutoScalingGroupCapacity", {
   instanceType: new ec2.InstanceType("t2.xlarge"),
   desiredCapacity: 1,
 });
 
-const taskDefinition = new ecs.Ec2TaskDefinition(
+const kbpTaskDefinition = new ecs.Ec2TaskDefinition(
   customResourceStack,
   "kbpTaskDef",
 );
 
-const container = taskDefinition.addContainer("DefaultContainer", {
-  image: ecs.ContainerImage.fromAsset("./"),
+kbpTaskDefinition.addContainer("kbpContainer", {
+  image: containerImage,
   memoryLimitMiB: 512,
   cpu: 256,
 });
 
-container.addPortMappings({
-  containerPort: 3000, // NestJSがリッスンするポート
+new ecs.Ec2Service(customResourceStack, "kbpService", {
+  cluster: kbpCluster,
+  taskDefinition: kbpTaskDefinition,
+});
+*/
+
+const kbpCluster = new ecs.Cluster(customResourceStack, "kbpCluster", {
+  vpc: kbpCustomVpc,
 });
 
-new ecs.Ec2Service(customResourceStack, "kbpService", {
-  cluster,
-  taskDefinition,
-});
+const repository = ecr.Repository.fromRepositoryArn(
+  customResourceStack,
+  "MyExistingRepository",
+  "arn:aws:ecr:ap-northeast-1:533267164653:repository/hello-repository",
+);
+
+new ecs_patterns.ApplicationLoadBalancedFargateService(
+  customResourceStack,
+  "kbpFargateService",
+  {
+    cluster: kbpCluster, // Required
+    cpu: 512, // Default is 256
+    desiredCount: 6, // Default is 1
+    //    taskImageOptions: { image: containerImage },
+    taskImageOptions: {
+      image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample"),
+    },
+    memoryLimitMiB: 2048, // Default is 512
+    publicLoadBalancer: true, // Default is true
+  },
+);
 
 /*
 // RDS

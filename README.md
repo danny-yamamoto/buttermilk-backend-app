@@ -101,14 +101,18 @@ node ➜ /workspaces/buttermilk-backend-app (main)
 ## Bootstrap your AWS account
 
 ```bash
+export MY_PROFILE_NAME=""
+echo $MY_PROFILE_NAME
 aws configure sso
 # Set AWS environment variables
 vi ~/.aws/credentials
 cat ~/.aws/credentials
 # Get profile-name from AWS access portal
 cat ~/.aws/config
-# Run Sandbox
-npx ampx sandbox --profile <profile-name>
+# Run sandbox
+npx ampx sandbox --profile ${MY_PROFILE_NAME} --identifier xxxx
+# Delete sandbox
+npx ampx sandbox delete --profile ${MY_PROFILE_NAME} --identifier xxxx
 ```
 
 ### Examples
@@ -156,3 +160,17 @@ webpack 5.90.1 compiled successfully in 22426 ms
 [^3]: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_rds-readme.html
 
 [^4]: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ec2-readme.html
+
+```bash
+# README at : https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/create-container-image.html#create-container-image-create-image
+export AWS_ACCOUNT_ID=""
+export AWS_DEFAULT_REGION="ap-northeast-1"
+echo $AWS_ACCOUNT_ID
+echo $AWS_DEFAULT_REGION
+
+docker tag hello-world ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/hello-repository
+
+aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+
+docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/hello-repository
+```

@@ -3,11 +3,11 @@ import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 //import * as rds from "aws-cdk-lib/aws-rds";
-import * as ecr from "aws-cdk-lib/aws-ecr";
+//import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 //import * as codebuild from "aws-cdk-lib/aws-codebuild";
 //import * as iam from "aws-cdk-lib/aws-iam";
-import * as ecs_patterns from "aws-cdk-lib/aws-ecs-patterns";
+//import * as ecs_patterns from "aws-cdk-lib/aws-ecs-patterns";
 
 const backend = defineBackend({
   auth,
@@ -108,33 +108,66 @@ new ecs.Ec2Service(customResourceStack, "kbpService", {
 });
 */
 
+kbpSecurityGroup.addIngressRule(
+  ec2.Peer.anyIpv4(),
+  ec2.Port.tcp(80),
+  "Allow HTTP traffic",
+);
+
 const kbpCluster = new ecs.Cluster(customResourceStack, "kbpCluster", {
   vpc: kbpCustomVpc,
 });
 
-const repository = ecr.Repository.fromRepositoryArn(
+// タスク定義の作成
+const taskDefinition = new ecs.FargateTaskDefinition(
   customResourceStack,
-  "MyExistingRepository",
-  "arn:aws:ecr:ap-northeast-1:533267164653:repository/hello-repository",
-);
-
-new ecs_patterns.ApplicationLoadBalancedFargateService(
-  customResourceStack,
-  "kbpFargateService",
+  "kbpFargateTaskDefinition",
   {
-    cluster: kbpCluster, // Required
-    cpu: 512, // Default is 256
-    desiredCount: 1, // Default is 1
-    //    taskImageOptions: { image: containerImage },
-    taskImageOptions: {
-      image: ecs.ContainerImage.fromRegistry(
-        "public.ecr.aws/ecs-sample-image/amazon-ecs-sample:latest",
-      ),
-    },
-    memoryLimitMiB: 2048, // Default is 512
-    publicLoadBalancer: true, // Default is true
+    memoryLimitMiB: 512,
+    cpu: 256,
   },
 );
+
+// コンテナ定義の追加
+taskDefinition.addContainer("fargate-app", {
+  image: ecs.ContainerImage.fromRegistry(
+    "public.ecr.aws/docker/library/httpd:latest",
+  ),
+  entryPoint: ["sh", "-c"],
+  command: [
+    "/bin/sh -c \"echo '<html> <head> <title>Amazon ECS Sample App</title> <style>body {margin-top: 40px; background-color: #333;} </style> </head><body> <div style=color:white;text-align:center> <h1>Amazon ECS Sample App</h1> <h2>Congratulations!</h2> <p>Your application is now running on a container in Amazon ECS.</p> </div></body></html>' >  /usr/local/apache2/htdocs/index.html && httpd-foreground\"",
+  ],
+  portMappings: [
+    {
+      containerPort: 80,
+      hostPort: 80,
+      protocol: ecs.Protocol.TCP,
+    },
+  ],
+});
+
+const kbpFargateServiceSecurityGroup = new ec2.SecurityGroup(
+  customResourceStack,
+  "kbpFargateServiceSecurityGroup",
+  {
+    vpc: kbpCustomVpc,
+    description: "Allow access to Fargate service",
+    allowAllOutbound: true,
+  },
+);
+kbpFargateServiceSecurityGroup.addIngressRule(
+  ec2.Peer.anyIpv4(),
+  ec2.Port.tcp(80),
+  "Allow HTTP traffic",
+);
+
+// Fargateサービスの作成
+new ecs.FargateService(customResourceStack, "kbpFargateService", {
+  cluster: kbpCluster,
+  taskDefinition: taskDefinition,
+  assignPublicIp: true,
+  securityGroups: [kbpFargateServiceSecurityGroup],
+});
 
 /*
 // RDS

@@ -2,12 +2,8 @@ import { defineBackend } from "@aws-amplify/backend";
 import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-//import * as rds from "aws-cdk-lib/aws-rds";
-//import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as ecs from "aws-cdk-lib/aws-ecs";
-//import * as codebuild from "aws-cdk-lib/aws-codebuild";
-//import * as iam from "aws-cdk-lib/aws-iam";
-//import * as ecs_patterns from "aws-cdk-lib/aws-ecs-patterns";
+import dotenv from "dotenv";
 
 const backend = defineBackend({
   auth,
@@ -15,6 +11,9 @@ const backend = defineBackend({
 });
 
 const customResourceStack = backend.createStack("KBPCustomResources");
+
+// Loading .env files
+dotenv.config();
 
 // VPC
 // README at: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ec2-readme.html
@@ -45,69 +44,6 @@ kbpSecurityGroup.addEgressRule(
   "Allow HTTPS outbound traffic",
 );
 
-/*
-//533267164653.dkr.ecr.ap-northeast-1.amazonaws.com/hello-repository
-const repository = ecr.Repository.fromRepositoryArn(
-  customResourceStack,
-  "MyExistingRepository",
-  "arn:aws:ecr:ap-northeast-1:533267164653:repository/hello-repository",
-);
-
-const containerImage = ecs.ContainerImage.fromEcrRepository(
-  repository,
-  "latest",
-);
-
-const taskDefinition = new ecs.Ec2TaskDefinition(
-  customResourceStack,
-  "MyTaskDefinition",
-);
-
-const container = taskDefinition.addContainer("DefaultContainer", {
-  image: containerImage,
-  memoryLimitMiB: 512,
-  cpu: 256,
-});
-*/
-
-/*
-const repository = ecr.Repository.fromRepositoryArn(
-  customResourceStack,
-  "MyExistingRepository",
-  "arn:aws:ecr:ap-northeast-1:533267164653:repository/hello-repository",
-);
-
-const containerImage = ecs.ContainerImage.fromEcrRepository(
-  repository,
-  "latest",
-);
-
-const kbpCluster = new ecs.Cluster(customResourceStack, "kbpCluster", {
-  vpc: kbpCustomVpc,
-});
-
-kbpCluster.addCapacity("kbpAutoScalingGroupCapacity", {
-  instanceType: new ec2.InstanceType("t2.xlarge"),
-  desiredCapacity: 1,
-});
-
-const kbpTaskDefinition = new ecs.Ec2TaskDefinition(
-  customResourceStack,
-  "kbpTaskDef",
-);
-
-kbpTaskDefinition.addContainer("kbpContainer", {
-  image: containerImage,
-  memoryLimitMiB: 512,
-  cpu: 256,
-});
-
-new ecs.Ec2Service(customResourceStack, "kbpService", {
-  cluster: kbpCluster,
-  taskDefinition: kbpTaskDefinition,
-});
-*/
-
 kbpSecurityGroup.addIngressRule(
   ec2.Peer.anyIpv4(),
   ec2.Port.tcp(80),
@@ -118,7 +54,6 @@ const kbpCluster = new ecs.Cluster(customResourceStack, "kbpCluster", {
   vpc: kbpCustomVpc,
 });
 
-// タスク定義の作成
 const taskDefinition = new ecs.FargateTaskDefinition(
   customResourceStack,
   "kbpFargateTaskDefinition",
@@ -128,10 +63,15 @@ const taskDefinition = new ecs.FargateTaskDefinition(
   },
 );
 
-// コンテナ定義の追加
+// Secrets
+// README at: https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/#access-secrets
+const imageTag = process.env.BACKEND_API_TAG || "latest";
+
+// ECS
+// README at: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs-readme.html
 taskDefinition.addContainer("fargate-app", {
   image: ecs.ContainerImage.fromRegistry(
-    "public.ecr.aws/docker/library/httpd:latest",
+    "public.ecr.aws/docker/library/httpd:" + imageTag,
   ),
   entryPoint: ["sh", "-c"],
   command: [
@@ -155,13 +95,13 @@ const kbpFargateServiceSecurityGroup = new ec2.SecurityGroup(
     allowAllOutbound: true,
   },
 );
+
 kbpFargateServiceSecurityGroup.addIngressRule(
   ec2.Peer.anyIpv4(),
   ec2.Port.tcp(80),
   "Allow HTTP traffic",
 );
 
-// Fargateサービスの作成
 new ecs.FargateService(customResourceStack, "kbpFargateService", {
   cluster: kbpCluster,
   taskDefinition: taskDefinition,

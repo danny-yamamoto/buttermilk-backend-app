@@ -109,6 +109,9 @@ vi ~/.aws/credentials
 cat ~/.aws/credentials
 # Get profile-name from AWS access portal
 cat ~/.aws/config
+# Set secrets
+npx ampx sandbox secret set BACKEND_API_TAG --profile ${MY_PROFILE_NAME}
+npx ampx sandbox secret list --profile ${MY_PROFILE_NAME}
 # Run sandbox
 npx ampx sandbox --profile ${MY_PROFILE_NAME} --identifier xxxx
 # Delete sandbox

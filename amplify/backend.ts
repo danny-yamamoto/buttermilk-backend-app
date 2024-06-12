@@ -39,6 +39,11 @@ const kbpSecurityGroup = new ec2.SecurityGroup(
 );
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3306));
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
+kbpSecurityGroup.addEgressRule(
+  ec2.Peer.anyIpv4(),
+  ec2.Port.tcp(443),
+  "Allow HTTPS outbound traffic",
+);
 
 /*
 //533267164653.dkr.ecr.ap-northeast-1.amazonaws.com/hello-repository
@@ -119,10 +124,12 @@ new ecs_patterns.ApplicationLoadBalancedFargateService(
   {
     cluster: kbpCluster, // Required
     cpu: 512, // Default is 256
-    desiredCount: 6, // Default is 1
+    desiredCount: 1, // Default is 1
     //    taskImageOptions: { image: containerImage },
     taskImageOptions: {
-      image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample"),
+      image: ecs.ContainerImage.fromRegistry(
+        "public.ecr.aws/ecs-sample-image/amazon-ecs-sample:latest",
+      ),
     },
     memoryLimitMiB: 2048, // Default is 512
     publicLoadBalancer: true, // Default is true

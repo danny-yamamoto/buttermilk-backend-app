@@ -3,7 +3,6 @@ import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
-import * as ecr from "aws-cdk-lib/aws-ecr";
 import dotenv from "dotenv";
 
 const backend = defineBackend({
@@ -69,24 +68,13 @@ const taskDefinition = new ecs.FargateTaskDefinition(
   },
 );
 
-// Secrets
-// README at: https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/#access-secrets
-//const imageTag = process.env.BACKEND_API_TAG || "latest";
-
-const repository = ecr.Repository.fromRepositoryName(
-  customResourceStack,
-  "MyRepository",
-  "hello-repository",
-  //"hoge",
-);
-
 // ECS
 // README at: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs-readme.html
 taskDefinition.addContainer("fargate-app", {
-  image: ecs.ContainerImage.fromEcrRepository(repository, "v0.0.1"),
+  image: ecs.ContainerImage.fromAsset("./"),
   portMappings: [
     {
-      containerPort: 80,  // コンテナ内部のポート
+      containerPort: 80, // コンテナ内部のポート
       protocol: ecs.Protocol.TCP,
     },
   ],

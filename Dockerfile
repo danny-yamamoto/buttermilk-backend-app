@@ -1,34 +1,20 @@
-# ベースイメージとして Node.js の公式イメージを使用
-#FROM node:18-alpine
-#FROM node:21.7-alpine
-FROM public.ecr.aws/docker/library/node:20.14.0-alpine3.20 AS base
+FROM public.ecr.aws/amazonlinux/amazonlinux:latest
 
-FROM base AS builder
-RUN apk add --no-cache libc6-compat
-RUN apk update
+# Install dependencies
+RUN yum update -y && \
+ yum install -y httpd
 
-# 作業ディレクトリを設定
-WORKDIR /app
+# Install apache and write hello world message
+RUN echo 'Hello World!' > /var/www/html/index.html
 
-# package.json と package-lock.json をコピー
-COPY package*.json ./
+RUN echo 'ServerName localhost' >> /etc/httpd/conf/httpd.conf
 
-# 依存関係をインストール
-RUN npm install
-RUN npm install -g @nestjs/cli
+# Configure apache
+RUN echo 'mkdir -p /var/run/httpd' >> /root/run_apache.sh && \
+ echo 'mkdir -p /var/lock/httpd' >> /root/run_apache.sh && \
+ echo '/usr/sbin/httpd -D FOREGROUND' >> /root/run_apache.sh && \
+ chmod 755 /root/run_apache.sh
 
-# アプリケーションのソースコードをコピー
-COPY . .
+EXPOSE 80
 
-# Prisma の設定
-#RUN npx prisma generate
-
-# ビルド
-#RUN npm run build
-RUN nest build
-
-# アプリケーションのポートを設定
-EXPOSE 3000
-
-# アプリケーションを起動
-CMD ["node", "dist/main.js"]
+CMD /root/run_apache.sh

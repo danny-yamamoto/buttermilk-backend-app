@@ -76,8 +76,8 @@ const taskDefinition = new ecs.FargateTaskDefinition(
 const repository = ecr.Repository.fromRepositoryName(
   customResourceStack,
   "MyRepository",
-  //"hello-repository",
-  "hoge",
+  "hello-repository",
+  //"hoge",
 );
 
 // ECS
@@ -86,7 +86,7 @@ taskDefinition.addContainer("fargate-app", {
   image: ecs.ContainerImage.fromEcrRepository(repository, "v0.0.1"),
   portMappings: [
     {
-      containerPort: 3000,  // コンテナ内部のポート
+      containerPort: 80,  // コンテナ内部のポート
       protocol: ecs.Protocol.TCP,
     },
   ],

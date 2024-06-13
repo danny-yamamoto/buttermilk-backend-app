@@ -39,6 +39,11 @@ const kbpSecurityGroup = new ec2.SecurityGroup(
 );
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3306));
 kbpSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
+kbpSecurityGroup.addIngressRule(
+  ec2.Peer.anyIpv4(),
+  ec2.Port.tcp(3000),
+  "Allow NestJS traffic",
+);
 kbpSecurityGroup.addEgressRule(
   ec2.Peer.anyIpv4(),
   ec2.Port.tcp(443),
@@ -71,17 +76,17 @@ const taskDefinition = new ecs.FargateTaskDefinition(
 const repository = ecr.Repository.fromRepositoryName(
   customResourceStack,
   "MyRepository",
-  "hello-repository",
+  //"hello-repository",
+  "hoge",
 );
 
 // ECS
 // README at: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs-readme.html
 taskDefinition.addContainer("fargate-app", {
-  image: ecs.ContainerImage.fromEcrRepository(repository),
+  image: ecs.ContainerImage.fromEcrRepository(repository, "v0.0.1"),
   portMappings: [
     {
-      containerPort: 80,
-      hostPort: 80,
+      containerPort: 3000,  // コンテナ内部のポート
       protocol: ecs.Protocol.TCP,
     },
   ],

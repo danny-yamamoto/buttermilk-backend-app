@@ -3,6 +3,7 @@ import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
+import * as ecr from "aws-cdk-lib/aws-ecr";
 import dotenv from "dotenv";
 
 const backend = defineBackend({
@@ -65,18 +66,18 @@ const taskDefinition = new ecs.FargateTaskDefinition(
 
 // Secrets
 // README at: https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/#access-secrets
-const imageTag = process.env.BACKEND_API_TAG || "latest";
+//const imageTag = process.env.BACKEND_API_TAG || "latest";
+
+const repository = ecr.Repository.fromRepositoryName(
+  customResourceStack,
+  "MyRepository",
+  "hello-repository",
+);
 
 // ECS
 // README at: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ecs-readme.html
 taskDefinition.addContainer("fargate-app", {
-  image: ecs.ContainerImage.fromRegistry(
-    "public.ecr.aws/docker/library/httpd:" + imageTag,
-  ),
-  entryPoint: ["sh", "-c"],
-  command: [
-    "/bin/sh -c \"echo '<html> <head> <title>Amazon ECS Sample App</title> <style>body {margin-top: 40px; background-color: #333;} </style> </head><body> <div style=color:white;text-align:center> <h1>Amazon ECS Sample App</h1> <h2>Congratulations!</h2> <p>Your application is now running on a container in Amazon ECS.</p> </div></body></html>' >  /usr/local/apache2/htdocs/index.html && httpd-foreground\"",
-  ],
+  image: ecs.ContainerImage.fromEcrRepository(repository),
   portMappings: [
     {
       containerPort: 80,
